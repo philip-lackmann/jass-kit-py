@@ -1,0 +1,14 @@
+[Unit]
+Description=Jass bot player service
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+User=ubuntu
+WorkingDirectory=/home/ubuntu/jass-kit-py/bot
+ExecStart=/home/ubuntu/jass-kit-py/bot/.venv/bin/gunicorn 'player_service:create_app()' --bind 0.0.0.0:8888 --workers 2 --timeout 30 --access-logfile -
+Restart=always
+RestartSec=3
+
+[Install]
+WantedBy=multi-user.target
