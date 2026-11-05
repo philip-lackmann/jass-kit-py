@@ -6,11 +6,11 @@ import unittest
 import numpy as np
 from jass.agents.agent_random_schieber import AgentRandomSchieber
 from jass.arena.arena import Arena
-from jass.game.const import CLUBS, PUSH, SPADES, card_ids
+from jass.game.const import CLUBS, OBE_ABE, PUSH, UNE_UFE, card_ids
 from jass.game.game_observation import GameObservation
 
 from player_service import create_app
-from rule_based_agent import RuleBasedAgent
+from agent_rule_based_v2 import RuleBasedAgent
 
 # example messages from the interface definition (JassInterfaceV02.pdf)
 TRUMP_REQUEST = {
@@ -40,16 +40,24 @@ def observation(hand, forehand):
 
 
 class TestRules(unittest.TestCase):
-    def test_forehand_pushes_without_long_color(self):
-        hand = ['DA', 'DK', 'DQ', 'HA', 'HK', 'HQ', 'SA', 'SK', 'CA']
+    def test_forehand_pushes_weak_hand(self):
+        hand = ['D10', 'HA', 'HJ', 'SQ', 'S10', 'S7', 'S6', 'CK', 'C7']  # best score 54 < PUSH_THRESHOLD
         self.assertEqual(RuleBasedAgent().action_trump(observation(hand, forehand=-1)), PUSH)
 
-    def test_forehand_selects_long_color(self):
-        hand = ['DA', 'DK', 'HA', 'HK', 'SA', 'CA', 'CK', 'CQ', 'CJ']
+    def test_forehand_selects_strong_trump_color(self):
+        hand = ['DA', 'H7', 'S6', 'CA', 'CK', 'CQ', 'CJ', 'C9', 'C8']  # Buur and Nell of clubs
         self.assertEqual(RuleBasedAgent().action_trump(observation(hand, forehand=-1)), CLUBS)
 
-    def test_partner_must_not_push(self):
+    def test_forehand_selects_obe_abe_with_aces(self):
         hand = ['DA', 'DK', 'DQ', 'HA', 'HK', 'HQ', 'SA', 'SK', 'CA']
+        self.assertEqual(RuleBasedAgent().action_trump(observation(hand, forehand=-1)), OBE_ABE)
+
+    def test_forehand_selects_une_ufe_with_low_cards(self):
+        hand = ['D6', 'D7', 'D8', 'H6', 'H7', 'S6', 'S8', 'C6', 'C7']
+        self.assertEqual(RuleBasedAgent().action_trump(observation(hand, forehand=-1)), UNE_UFE)
+
+    def test_partner_must_not_push(self):
+        hand = ['D10', 'HA', 'HJ', 'SQ', 'S10', 'S7', 'S6', 'CK', 'C7']  # weak hand that forehand would push
         self.assertNotEqual(RuleBasedAgent().action_trump(observation(hand, forehand=0)), PUSH)
 
     def test_full_games_are_legal(self):
@@ -71,7 +79,7 @@ class TestService(unittest.TestCase):
     def test_trump_requests(self):
         response = self.client.post('/rule_based/action_trump', json=TRUMP_REQUEST)
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.get_json()['trump'], SPADES)
+        self.assertEqual(response.get_json()['trump'], PUSH)  # weak hand, see test_forehand_pushes_weak_hand
 
         response = self.client.post('/rule_based/action_trump', json=TRUMP_REQUEST_AFTER_PUSH)
         self.assertEqual(response.status_code, 200)

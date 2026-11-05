@@ -4,7 +4,7 @@ Plays the bot against the random agent locally and reports the mean points with 
 from jass.agents.agent_random_schieber import AgentRandomSchieber
 from jass.arena.arena import Arena
 
-from rule_based_agent import RuleBasedAgent
+from agent_rule_based_v2 import RuleBasedAgentV2
 
 NR_GAMES = 1000
 POINTS_TO_WIN = 157 / 2
@@ -12,7 +12,7 @@ POINTS_TO_WIN = 157 / 2
 
 def main():
     arena = Arena(nr_games_to_play=NR_GAMES)
-    bot = RuleBasedAgent()
+    bot = RuleBasedAgentV2()
     opponent = AgentRandomSchieber()
     arena.set_players(bot, opponent, bot, opponent)
     arena.play_all_games()

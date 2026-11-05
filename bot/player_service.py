@@ -14,11 +14,13 @@ import logging
 
 from jass.service.player_service_app import PlayerServiceApp
 
-from rule_based_agent import RuleBasedAgent
+from agent_rule_based import RuleBasedAgent
+from agent_rule_based_v2 import RuleBasedAgentV2
 
 
 def create_app():
     logging.basicConfig(level=logging.INFO)
     app = PlayerServiceApp('player_service')
     app.add_player('rule_based', RuleBasedAgent())
+    app.add_player('rule_based_v2', RuleBasedAgentV2())
     return app
